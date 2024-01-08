@@ -214,7 +214,7 @@ def searchTeencode(word):
     pass
 
 # features extraction
-with open('/Users/windy/Documents/dev_python/Content_based_on_Filtering/vietnamese.txt', "r") as ins:
+with open('vietnamese.txt', "r") as ins:
     stopword = []
     for line in ins:
         stopword.append(line.strip('\n'))
