@@ -1,9 +1,11 @@
 # my_function.py
-import re
 import pandas as pd
 import regex as re
+import nltk
+nltk.download('punkt')
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.tokenize.treebank import TreebankWordDetokenizer
+
 bang_nguyen_am = [['a', 'à', 'á', 'ả', 'ã', 'ạ', 'a'],
                   ['ă', 'ằ', 'ắ', 'ẳ', 'ẵ', 'ặ', 'aw'],
                   ['â', 'ầ', 'ấ', 'ẩ', 'ẫ', 'ậ', 'aa'],
