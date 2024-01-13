@@ -17,24 +17,24 @@ def remove_punctuation(text):
     punctuationfree="".join([i for i in text if i not in string.punctuation])
     return punctuationfree
 
-jobs["Description"] = jobs["Description"].apply(stopWords_Teencode)
-jobs["Requirement"] = jobs["Requirement"].apply(stopWords_Teencode)
-jobs["Description"] = jobs["Description"].str.replace('\n', ' ')
-jobs["Requirement"] = jobs["Requirement"].str.replace('\n', ' ')
-jobs["Description"] = jobs["Description"].apply(lambda x:remove_punctuation(x))
-jobs["Requirement"] = jobs["Requirement"].apply(lambda x:remove_punctuation(x))
+jobs["description"] = jobs["description"].apply(stopWords_Teencode)
+jobs["requirement"] = jobs["requirement"].apply(stopWords_Teencode)
+jobs["description"] = jobs["description"].str.replace('\n', ' ')
+jobs["requirement"] = jobs["requirement"].str.replace('\n', ' ')
+jobs["description"] = jobs["description"].apply(lambda x:remove_punctuation(x))
+jobs["requirement"] = jobs["requirement"].apply(lambda x:remove_punctuation(x))
 tfidf_vectorizer = TfidfVectorizer()
 
 
 def recommend_jobs(skill, exp):
     user_input = skill + " " + exp
     user_input_vector = tfidf_vectorizer.fit_transform([user_input])
-    tfidf_matrix_descriptions = tfidf_vectorizer.transform(jobs["Description"] + jobs["Requirement"])
+    tfidf_matrix_descriptions = tfidf_vectorizer.transform(jobs["description"] + jobs["requirement"])
     cosine_sim_scores_new_user = cosine_similarity(user_input_vector, tfidf_matrix_descriptions)
     job_ranking_new_user = pd.Series(cosine_sim_scores_new_user[0], name="cosine_sim_score").sort_values(ascending=False).index
     recommended_jobs_new_user = jobs.iloc[job_ranking_new_user]
-    recommended_jobs_new_user['CreatedAt'] = recommended_jobs_new_user['CreatedAt'].astype(str)
-    recommended_jobs_new_user['UpdatedAt'] = recommended_jobs_new_user['UpdatedAt'].astype(str)
+    recommended_jobs_new_user['createdAt'] = recommended_jobs_new_user['createdAt'].astype(str)
+    recommended_jobs_new_user['updatedAt'] = recommended_jobs_new_user['updatedAt'].astype(str)
     return recommended_jobs_new_user.head(20)
 
 class RecommendJobs(Resource):
@@ -66,9 +66,9 @@ class JobResource(Resource):
             post = request.get_json()
             jobs = pd.read_excel('job_data.xlsx')
             data = pd.DataFrame(post, index=[0])
-            existing_job = jobs[jobs['Id'] == post['Id']]
+            existing_job = jobs[jobs['id'] == post['id']]
             if not existing_job.empty:
-                jobs.loc[jobs['Id'] == post['Id']] = data
+                jobs.loc[jobs['id'] == post['id']] = data
                 message = 'Post updated successfully'
             else:
                 jobs = jobs._append(data, ignore_index=True)
