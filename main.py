@@ -56,7 +56,7 @@ class RecommendJobs(Resource):
             remove_punctuation(exp)
             recommended_jobs = recommend_jobs(skill, exp)
 
-            return recommended_jobs.to_dict(orient='records')
+            return jsonify(recommended_jobs.to_dict(orient='records'))
         except Exception as e:
             return {'error': str(e)}, 500
     
