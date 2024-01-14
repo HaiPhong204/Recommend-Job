@@ -5,6 +5,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from pre_process_data import stopWords_Teencode
 import string
 import pandas as pd
+import json
 
 app = Flask(__name__)
 api = Api(app)
@@ -23,6 +24,10 @@ jobs["description"] = jobs["description"].str.replace('\n', ' ')
 jobs["requirement"] = jobs["requirement"].str.replace('\n', ' ')
 jobs["description"] = jobs["description"].apply(lambda x:remove_punctuation(x))
 jobs["requirement"] = jobs["requirement"].apply(lambda x:remove_punctuation(x))
+jobs["user"] = jobs["user"].apply(lambda x: x.replace("'", '"'))
+jobs["user"] = jobs["user"].apply(lambda x: json.loads(x))
+jobs["packages"] = jobs["packages"].apply(lambda x: x.replace("'", '"'))
+jobs["packages"] = jobs["packages"].apply(lambda x: json.loads(x))
 tfidf_vectorizer = TfidfVectorizer()
 
 
