@@ -42,6 +42,17 @@ def recommend_jobs(skill, exp):
     recommended_jobs_new_user['updatedAt'] = recommended_jobs_new_user['updatedAt'].astype(str)
     return recommended_jobs_new_user.head(20)
 
+def recommend_all_jobs(skill, exp):
+    user_input = skill + " " + exp
+    user_input_vector = tfidf_vectorizer.fit_transform([user_input])
+    tfidf_matrix_descriptions = tfidf_vectorizer.transform(jobs["description"] + jobs["requirement"])
+    cosine_sim_scores_new_user = cosine_similarity(user_input_vector, tfidf_matrix_descriptions)
+    job_ranking_new_user = pd.Series(cosine_sim_scores_new_user[0], name="cosine_sim_score").sort_values(ascending=False).index
+    recommended_jobs_new_user = jobs.iloc[job_ranking_new_user]
+    recommended_jobs_new_user['createdAt'] = recommended_jobs_new_user['createdAt'].astype(str)
+    recommended_jobs_new_user['updatedAt'] = recommended_jobs_new_user['updatedAt'].astype(str)
+    return recommended_jobs_new_user.head(100)
+
 class RecommendJobs(Resource):
     def post(self):
         try:
@@ -65,6 +76,29 @@ class RecommendJobs(Resource):
         except Exception as e:
             return {'error': str(e)}, 500
     
+class RecommendAllJobs(Resource):
+    def post(self):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('Skill', type=str, required=True, help='Skill cannot be blank')
+            parser.add_argument('Experiences', type=str, required=True, help='Experiences cannot be blank')
+            args = parser.parse_args()
+
+            skill = args['Skill']
+            exp = args['Experiences']
+
+            stopWords_Teencode(skill)
+            stopWords_Teencode(exp)
+            skill = skill.replace('\n', ' ')
+            exp = exp.replace('\n', ' ')
+            remove_punctuation(skill)
+            remove_punctuation(exp)
+            recommended_jobs = recommend_all_jobs(skill, exp)
+
+            return recommended_jobs.to_dict(orient='records')
+        except Exception as e:
+            return {'error': str(e)}, 500
+
 class JobResource(Resource):
     def post(self):
         try:
@@ -88,6 +122,7 @@ class JobResource(Resource):
 # Thêm resource vào API
 api.add_resource(JobResource, '/jobs') 
 api.add_resource(RecommendJobs, '/recommend')
+api.add_resource(RecommendAllJobs, '/recommend-all')
 
 if __name__ == '__main__':
     app.run(debug=True)
