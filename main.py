@@ -12,6 +12,7 @@ api = Api(app)
 
 # Đọc dữ liệu từ
 jobs = pd.read_excel('job_data.xlsx')
+jobs_evaluation = pd.read_excel('job_evaluation.xlsx')
 
 # Tiền xử lý dữ liệu và tính cosine similarity
 def remove_punctuation(text):
@@ -119,10 +120,39 @@ class JobResource(Resource):
         except Exception as e:
             return {'error': str(e)}, 500
 
+class JobEvaluation(Resource):
+    def post(self):
+        try:
+            post = request.get_json()
+            if post['UserId'] in jobs_evaluation.index:
+                user_row = jobs_evaluation.loc[post['UserId']].copy()
+                update_dict = {job['JobId']: job['Rate'] for job in post['Rated']}
+                for job_id, rate in update_dict.items():
+                    user_row.at[job_id] = rate
+                for column in jobs_evaluation.columns:
+                    if column not in update_dict:
+                        user_row.at[column] = 0
+                jobs_evaluation.loc[post['UserId']] = user_row
+                message = 'Evaluation updated successfully'
+            else:
+                new_row = {job['JobId']: job['Rate'] for job in post['Rated']}
+                for column in jobs_evaluation.columns:
+                    if column not in new_row:
+                        new_row[column] = 0
+                jobs_evaluation.loc[post['UserId']] = new_row
+                message = 'Evaluation added successfully'
+
+            jobs_evaluation.to_excel('job_evaluation.xlsx', index=False)
+
+            return {'message': message}, 201
+        except Exception as e:
+            return {'error': str(e)}, 500
+
 # Thêm resource vào API
 api.add_resource(JobResource, '/jobs') 
 api.add_resource(RecommendJobs, '/recommend')
 api.add_resource(RecommendAllJobs, '/recommend-all')
+api.add_resource(JobEvaluation, '/job-evaluation')
 
 if __name__ == '__main__':
     app.run(debug=True)
