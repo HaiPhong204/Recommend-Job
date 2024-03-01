@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_restful import Resource, Api, reqparse
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -6,6 +6,7 @@ from pre_process_data import stopWords_Teencode
 import string
 import pandas as pd
 import json
+import os
 
 app = Flask(__name__)
 api = Api(app)
@@ -148,11 +149,23 @@ class JobEvaluation(Resource):
         except Exception as e:
             return {'error': str(e)}, 500
 
+class DownloadEvaluation(Resource):
+    def get(self):
+        try:
+            filename = 'job_evaluation.xlsx'
+            if os.path.exists(filename):
+                return send_file(filename, as_attachment=True)
+            else:
+                return {'message': 'File not found'}, 404
+        except Exception as e:
+            return {'error': str(e)}, 500
+
 # Thêm resource vào API
 api.add_resource(JobResource, '/jobs') 
 api.add_resource(RecommendJobs, '/recommend')
 api.add_resource(RecommendAllJobs, '/recommend-all')
 api.add_resource(JobEvaluation, '/job-evaluation')
+api.add_resource(DownloadEvaluation, '/download-evaluation')
 
 if __name__ == '__main__':
     app.run(debug=True)
